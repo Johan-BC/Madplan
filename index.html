@@ -56,10 +56,10 @@
   .warn{background:var(--warn-tint);color:var(--warn);border-radius:11px;padding:11px 14px;font-size:14px;margin:0 0 14px}
   .warn p{margin:0}.warn p+p{margin-top:4px}
   .new{background:var(--card);border:1px solid var(--line);border-radius:13px;margin:0 0 14px}
-  .new summary{list-style:none;cursor:pointer;padding:15px 17px;font-weight:700;font-size:16px;color:var(--accent);display:flex;justify-content:space-between}
-  .new summary::-webkit-details-marker{display:none}
-  .new summary::after{content:"+";font-size:20px;line-height:1}
-  .new[open] summary::after{content:"–"}
+  .new>summary{list-style:none;cursor:pointer;padding:15px 17px;font-weight:700;font-size:16px;color:var(--accent);display:flex;justify-content:space-between}
+  .new>summary::-webkit-details-marker{display:none}
+  .new>summary::after{content:"+";font-size:20px;line-height:1}
+  .new[open]>summary::after{content:"–"}
   .form{padding:0 17px 17px}
   .fld{display:block;margin:0 0 14px}
   .fld>span{display:block;font-size:13.5px;font-weight:650;color:var(--ink-soft);margin:0 0 5px}
@@ -96,6 +96,10 @@
   .btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
   .sync{font-size:14px;margin:12px 0 0;padding:11px 14px;border-radius:11px;background:var(--accent-tint);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .sync.bad{background:var(--warn-tint);color:var(--warn)}
+  .owner{border-top:1px solid var(--line);margin-top:18px}
+  .owner summary{list-style:none;cursor:pointer;padding:14px 0 10px;font-size:14px;font-weight:650;color:var(--ink-soft)}
+  .owner summary::-webkit-details-marker{display:none}
+  .owner .gh{padding:0}
   .gh{padding:0 17px 17px;font-size:14px;color:var(--ink-soft);line-height:1.55}
   .gh p{margin:0 0 10px}
   .gh input{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--page);color:var(--ink);margin:0 0 10px}
@@ -164,7 +168,7 @@
     <button class="mode" role="tab" id="m-plan" aria-selected="true" aria-controls="p-plan">Plan</button>
     <button class="mode" role="tab" id="m-shop" aria-selected="false" aria-controls="p-shop">Indkøb</button>
     <button class="mode" role="tab" id="m-cook" aria-selected="false" aria-controls="p-cook">Madlavning</button>
-    <button class="mode" role="tab" id="m-insp" aria-selected="false" aria-controls="p-insp">Inspiration</button>
+    <button class="mode" role="tab" id="m-insp" aria-selected="false" aria-controls="p-insp" hidden>Inspiration</button>
   </div>
 
   <section class="pane" id="p-plan" role="tabpanel" aria-labelledby="m-plan">
@@ -181,7 +185,30 @@
         <p class="locks-h">Ønsker til bestemte dage</p>
         <div id="f-locks"></div>
         <button class="go" id="f-go">Lav planen</button>
-        <p class="rules">Kylling mandag, onsdag og fredag i tre forskellige køkkener og teknikker. Mindst tre retter under 25 minutter, ingen fisk medmindre du beder om det, ikke to gryderetter i træk, ikke ris hver dag, og ingen gentagelser fra sidste plan.</p>
+        <p class="rules" id="rules"></p>
+      </div>
+    </details>
+    <details class="new" id="set">
+      <summary>Indstillinger</summary>
+      <div class="form">
+        <label class="fld"><span>Hvor mange spiser med?</span><input id="s-persons" type="number" min="1" max="12" inputmode="numeric">
+          <small>Mængderne i opskrifter og indkøbsliste regnes om. Portionerne er store - til folk der spiser godt.</small></label>
+        <label class="chk"><input id="s-chicken" type="checkbox"> Kylling tre dage om ugen</label>
+        <label class="chk"><input id="s-pork" type="checkbox"> Ingen svinekød</label>
+        <label class="chk"><input id="s-beef" type="checkbox"> Ingen oksekød</label>
+        <label class="chk"><input id="s-spicy" type="checkbox"> Ingen stærke retter</label>
+        <label class="fld"><span>Ting vi ikke spiser</span><input id="s-avoid" type="text" placeholder="fx svampe, kokos, peanuts" autocomplete="off">
+          <small>Retter med det kommer ikke med. Adskil med komma.</small></label>
+        <p class="rules" id="s-saved"></p>
+        <details class="owner" id="gh">
+          <summary>For ejeren af appen</summary>
+          <div class="gh">
+            <p>Med en GitHub-nøgle til opskriftsbankens repo får du fanen Inspiration, hvor du kan styre, hvilke sider Claude henter nye retter fra. Opret den under GitHub -> Settings -> Developer settings -> Fine-grained tokens, kun til Madplan-repoet, med "Contents: Read and write" og "Actions: Read and write".</p>
+            <p>Nøglen gemmes kun på denne telefon. Del den aldrig.</p>
+            <input id="i-token" type="password" placeholder="github_pat_…" autocomplete="off">
+            <button class="btn" id="i-savetok">Gem nøgle</button> <button class="btn ghost" id="i-deltok">Fjern nøgle</button>
+          </div>
+        </details>
       </div>
     </details>
   </section>
@@ -217,22 +244,14 @@
     <div id="from"></div>
     <h2 class="sec">Seneste hentninger</h2>
     <div id="log"></div>
-    <details class="new" id="gh" style="margin-top:24px">
-      <summary>GitHub-adgang</summary>
-      <div class="gh">
-        <p>For at appen kan gemme listen og starte "Opdater opskrifter", skal du indsætte en adgangsnøgle: GitHub -> Settings -> Developer settings -> Fine-grained tokens. Giv kun adgang til Madplan-repoet med "Contents: Read and write" og "Actions: Read and write".</p>
-        <p>Nøglen gemmes kun på denne telefon.</p>
-        <input id="i-token" type="password" placeholder="github_pat_…" autocomplete="off">
-        <button class="btn" id="i-savetok">Gem nøgle</button> <button class="btn ghost" id="i-deltok">Fjern nøgle</button>
-      </div>
-    </details>
   </section>
 </div>
 
 <script src="./engine.js"></script>
 <script>
 const K={shop:"madplan:kurv",steps:"madplan:trin",plan:"madplan:uge",hist:"madplan:historik",md:"madplan:retter",form:"madplan:form",
-  insp:"madplan:inspiration",dirty:"madplan:inspiration-ugemt",token:"madplan:github",run:"madplan:opdatering"};
+  insp:"madplan:inspiration",dirty:"madplan:inspiration-ugemt",token:"madplan:github",run:"madplan:opdatering",settings:"madplan:indstillinger"};
+const prefs=()=>({...Engine.PREFS,...store.get(K.settings,{})});
 const WF="inspiration.yml";
 let insp={sites:[],log:[]};
 const SHORT=["Man","Tir","Ons","Tor","Fre"];
@@ -267,10 +286,48 @@ async function boot(){
   state.shop=store.get(K.shop,{});
   state.steps=store.get(K.steps,{});
   plan=store.get(K.plan,null);
+  buildSettings();
   applyMd(md);
   if(!plan) $("new").open=true;
-  loadInsp();
-  pollUpdate();
+  ownerUI();
+  if(store.get(K.token,"")){loadInsp();pollUpdate();}
+}
+
+// ---------- Indstillinger ----------
+
+function buildSettings(){
+  const p=prefs();
+  $("s-persons").value=p.persons;
+  $("s-chicken").checked=p.chicken3;
+  $("s-pork").checked=p.noPork;
+  $("s-beef").checked=p.noBeef;
+  $("s-spicy").checked=p.noSpicy;
+  $("s-avoid").value=p.avoid;
+}
+
+function saveSettings(){
+  const n=Math.min(12,Math.max(1,parseInt($("s-persons").value)||3));
+  store.set(K.settings,{persons:n,chicken3:$("s-chicken").checked,noPork:$("s-pork").checked,
+    noBeef:$("s-beef").checked,noSpicy:$("s-spicy").checked,avoid:$("s-avoid").value.trim()});
+  $("s-saved").textContent="Gemt. Antal personer slår igennem med det samme - resten gælder fra næste plan, eller når du bytter en ret.";
+  renderAll();
+}
+
+function rulesText(){
+  const p=prefs(),out=[];
+  out.push(p.chicken3?"Kylling mandag, onsdag og fredag i tre forskellige køkkener og teknikker.":"Kylling aldrig to dage i træk.");
+  const no=[p.noPork&&"svinekød",p.noBeef&&"oksekød",p.noSpicy&&"stærke retter"].filter(Boolean);
+  if(p.avoid)no.push(p.avoid);
+  if(no.length)out.push("Uden "+no.join(", ")+".");
+  out.push("Mindst tre retter under 25 minutter, ingen fisk medmindre du beder om det, ikke to gryderetter i træk, ikke ris hver dag, og ingen gentagelser fra sidste plan.");
+  return out.join(" ");
+}
+
+// Inspiration-fanen vises kun for ejeren, dvs. når der ligger en GitHub-nøgle på telefonen
+function ownerUI(){
+  const owner=!!store.get(K.token,"");
+  $("m-insp").hidden=!owner;
+  if(!owner&&$("mp").dataset.mode==="insp")mode("plan");
 }
 
 function applyMd(md){
@@ -388,7 +445,7 @@ function updMsg(html,bad){$("upd").innerHTML=`<div class="sync${bad?" bad":""}">
 // "Opdater opskrifter": start workflowen, hvor Claude henter nye retter og pusher dem
 async function startUpdate(){
   if(store.get(K.run,null)){pollUpdate();return;}
-  if(!store.get(K.token,"")){updMsg("Kræver en GitHub-nøgle - se GitHub-adgang nederst.",true);$("gh").open=true;return;}
+  if(!store.get(K.token,"")){updMsg("Kræver en GitHub-nøgle.",true);return;}
   if(store.get(K.dirty,false)){await pushInsp();if(store.get(K.dirty,false))return;}
   if(!insp.sites.length){updMsg("Tilføj mindst én side først.",true);return;}
   updMsg("Starter…");
@@ -456,7 +513,9 @@ async function copyInsp(){
 }
 
 function sub(){
-  $("sub").textContent=plan?`Uge ${plan.week} · mandag til fredag · 3 personer`:`${R.length} retter i opskriftsbanken`;
+  const n=prefs().persons;
+  $("sub").textContent=plan?`Uge ${plan.week} · mandag til fredag · ${n} ${n===1?"person":"personer"}`:`${R.length} retter i opskriftsbanken`;
+  $("rules").textContent=rulesText();
 }
 
 function buildForm(){
@@ -480,7 +539,7 @@ function makePlan(){
   const opts={have:$("f-have").value.trim(),fish:$("f-fish").checked,locks:readLocks()};
   const hist=store.get(K.hist,[]);
   if(plan) hist.unshift(plan.ids);
-  const res=Engine.search(R,{...opts,history:hist});
+  const res=Engine.search(R,{...opts,prefs:prefs(),history:hist});
   store.set(K.hist,hist.slice(0,4));
   store.set(K.form,{locks:Engine.DAYS.map((_,i)=>$("f-l"+i).value)});
   plan={week:+$("f-week").value||Engine.nextWeek(),ids:res.ids,warnings:res.warnings,opts};
@@ -500,10 +559,11 @@ function refill(d,cycle){
     if(!seen[d].includes(plan.ids[d]))seen[d].push(plan.ids[d]);
   }
   const exclude=Engine.DAYS.map((_,i)=>i===d?seen[d]||[]:[]);
-  let res=Engine.search(R,{...plan.opts,fixed,exclude,history:store.get(K.hist,[])});
+  const base={...plan.opts,prefs:prefs(),fixed,history:store.get(K.hist,[])};
+  let res=Engine.search(R,{...base,exclude});
   if(res.ids[d]===plan.ids[d]&&cycle){
     seen[d]=[plan.ids[d]];
-    res=Engine.search(R,{...plan.opts,fixed,exclude:Engine.DAYS.map((_,i)=>i===d?seen[d]:[]),history:store.get(K.hist,[])});
+    res=Engine.search(R,{...base,exclude:Engine.DAYS.map((_,i)=>i===d?seen[d]:[])});
   }
   plan.ids=res.ids;plan.warnings=res.warnings;
   if(cycle)seen[d].push(res.ids[d]);
@@ -515,7 +575,7 @@ function save(){store.set(K.plan,plan);store.set(K.steps,state.steps);}
 const TECH={gryde:"gryde",wok:"wok",ovn:"ovn",suppe:"suppe",salat:"salat",pande:"pande"};
 function renderPlan(){
   sub();
-  if(!plan){$("week").innerHTML='<p class="empty">Ingen plan endnu. Lav en herunder.</p>';$("warn").innerHTML="";return;}
+  if(!plan){$("week").innerHTML='<p class="empty">Ingen plan endnu. Tjek først Indstillinger nederst - hvor mange I er, og hvad I ikke spiser. Lav så en plan herunder.</p>';$("warn").innerHTML="";return;}
   $("week").innerHTML='<ul class="week">'+plan.ids.map((id,i)=>{
     const r=BY[id];
     const prot=r.low?`${r.protShown} g m. tilbehør`:`${r.protShown} g`;
@@ -526,7 +586,7 @@ function renderPlan(){
 
 function renderShop(){
   if(!plan){$("list").innerHTML='<p class="empty">Lav en plan først.</p>';$("count").textContent="0 af 0";return;}
-  const groups=Engine.shopping(plan.ids.map(id=>BY[id]));
+  const groups=Engine.shopping(plan.ids.map(id=>BY[id]),prefs().persons);
   $("list").innerHTML=groups.map(g=>
     `<div class="grp"><h2>${g.g}</h2><ul>`+g.items.map(it=>{
       const on=state.shop[it[0]]?" on":"";
@@ -543,11 +603,12 @@ function renderCook(){
     `<button class="day" role="tab" data-day="${i}" aria-selected="${i===day}">${SHORT[i]}</button>`).join("");
   const r=BY[plan.ids[day]];
   const prot=r.low?`${r.protShown} g`:`${r.prot} g`;
+  const n=prefs().persons,sc=Engine.scaled(r,n);
   $("recipe").innerHTML=
     `<h2 class="dish">${esc(r.name)}</h2>
      <div class="stats"><div class="stat"><b>${esc(r.timeStr.replace(/\s*\(.*?\)/,""))}</b><span>aktiv tid</span></div><div class="stat"><b>${prot}</b><span>protein pr. person</span></div></div>
-     <div class="ing"><h3>Ingredienser til 3</h3><p>${r.display.map(esc).join('<i>/</i>')}</p></div>
-     <ol class="steps">`+r.steps.map((s,i)=>{
+     <div class="ing"><h3>Ingredienser til ${n}</h3><p>${sc.display.map(esc).join('<i>/</i>')}</p></div>
+     <ol class="steps">`+sc.steps.map((s,i)=>{
        const id=r.id+"-"+i,on=state.steps[id]?" on":"";
        return `<li><button class="step${on}" data-step="${id}"><p>${esc(s)}</p></button></li>`;
      }).join("")+`</ol>`+(r.note?`<p class="note">${esc(r.note)}</p>`:"");
@@ -577,10 +638,12 @@ $("i-url").onkeydown=e=>{if(e.key==="Enter")addSite();};
 $("i-savetok").onclick=()=>{
   const v=$("i-token").value.trim();
   if(!v||v.startsWith("•"))return;
-  store.set(K.token,v);renderInsp();
+  store.set(K.token,v);renderInsp();ownerUI();
+  loadInsp();
   if(store.get(K.dirty,false))pushInsp();
 };
-$("i-deltok").onclick=()=>{store.set(K.token,"");renderInsp();};
+$("i-deltok").onclick=()=>{store.set(K.token,"");renderInsp();ownerUI();};
+["s-persons","s-chicken","s-pork","s-beef","s-spicy","s-avoid"].forEach(id=>$(id).onchange=saveSettings);
 $("f-go").onclick=makePlan;
 $("reset").onclick=()=>{state.shop={};store.set(K.shop,{});renderShop();};
 $("resetsteps").onclick=()=>{

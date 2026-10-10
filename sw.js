@@ -1,4 +1,4 @@
-const CACHE = "madplan-v2";
+const CACHE = "madplan-v3";
 const SHELL = ["./", "./index.html", "./engine.js", "./retter.md", "./inspiration.json","./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

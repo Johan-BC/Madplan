@@ -7,6 +7,15 @@ En lille offline-app, der laver ugens madplan direkte på telefonen. Tre faner:
 - **Madlavning** - ét trin ad gangen i stor tekst, og skærmen holdes tændt.
 - **Inspiration** - de hjemmesider Claude henter nye retter fra.
 
+## Del appen med andre
+
+Send bare adressen. Andre installerer den fra Chrome eller Safari ("Installer app" / "Føj til hjemmeskærm") og skal ikke bruge GitHub.
+
+- Under **Plan -> Indstillinger** vælger de antal personer (mængderne i opskrifter og indkøbsliste regnes om), om der skal være kylling tre dage, og hvad de ikke spiser (svin, okse, stærkt, eller egne ord som "svampe").
+- Plan, indkøbsliste og indstillinger gemmes på deres egen telefon.
+- De får automatisk de nye retter, du henter via Inspiration.
+- Fanen **Inspiration** vises kun på telefoner med en GitHub-nøgle (Indstillinger -> For ejeren af appen). Del aldrig nøglen.
+
 ## Inspiration
 
 Listen over sider ligger i `inspiration.json`. I appen tilføjer og fjerner du sider. Med en GitHub-nøgle (fine-grained, kun Madplan-repoet, "Contents: Read and write") gemmer appen listen direkte; uden nøgle kopierer den listen og åbner GitHub's editor.

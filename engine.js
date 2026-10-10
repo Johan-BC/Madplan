@@ -328,16 +328,30 @@ const Engine = (() => {
     return (s || "").toLowerCase().split(/,|\bog\b|\n/).map(x => x.trim()).filter(x => x.length > 1);
   }
 
+  // Personlige indstillinger: hvad husstanden ikke spiser
+  const PREFS = { persons: 3, chicken3: true, noPork: false, noBeef: false, noSpicy: false, avoid: "" };
+
+  function okPrefs(r, p) {
+    const meat = r.items.filter(i => i.group === "K").map(i => i.key).join(" ");
+    if (p.noPork && /svin|skinke|bacon/i.test(meat)) return false;
+    if (p.noBeef && /okse|culotte/i.test(meat)) return false;
+    if (p.noSpicy && r.spicy) return false;
+    return !haveTerms(p.avoid).some(t => termRe(t).test(r.text));
+  }
+
   function pools(R, opts) {
     const terms = haveTerms(opts.have).map(termRe);
+    const prefs = { ...PREFS, ...(opts.prefs || {}) };
     return DAYS.map((_, d) => {
       const L = (opts.locks || [])[d] || { type: "any" };
       const ex = new Set((opts.exclude || [])[d] || []);
       const fixed = (opts.fixed || [])[d];
       if (fixed) return R.filter(r => r.id === fixed);
-      let p = R.filter(r => fitsLock(r, L) && !ex.has(r.id) && r.active <= 30 &&
+      const base = R.filter(r => !ex.has(r.id) && r.active <= 30 && (L.type === "dish" || okPrefs(r, prefs)));
+      let p = base.filter(r => fitsLock(r, L) &&
         (!r.fish || opts.fish || L.type === "fisk" || L.type === "dish" || terms.some(t => t.test(r.text))));
-      if (!p.length) p = R.filter(r => !ex.has(r.id) && (!r.fish || opts.fish));
+      if (!p.length) p = base.filter(r => !r.fish || opts.fish);
+      if (!p.length) p = base;
       return p;
     });
   }
@@ -349,7 +363,7 @@ const Engine = (() => {
 
     const ch = w.map(r => r.chicken);
     const n = ch.filter(Boolean).length;
-    if (n !== 3) { c += 400 * Math.abs(n - 3); explain && warn.push(`Kylling ${n} dage i stedet for 3.`); }
+    if (ctx.chicken3 && n !== 3) { c += 400 * Math.abs(n - 3); explain && warn.push(`Kylling ${n} dage i stedet for 3.`); }
     for (let i = 0; i < 4; i++) if (ch[i] && ch[i + 1]) { c += 400; explain && warn.push(`Kylling to dage i træk (${DAYS[i].toLowerCase()} og ${DAYS[i + 1].toLowerCase()}).`); }
     const cw = w.filter(r => r.chicken);
     for (let i = 0; i < cw.length; i++) for (let j = i + 1; j < cw.length; j++) {
@@ -397,13 +411,14 @@ const Engine = (() => {
     const P = pools(R, opts);
     const pref = {};
     R.forEach(r => pref[r.id] = Math.random() * 60);
-    const ctx = { R, history: opts.history || [], terms: haveTerms(opts.have), pref };
+    const chicken3 = { ...PREFS, ...(opts.prefs || {}) }.chicken3;
+    const ctx = { R, history: opts.history || [], terms: haveTerms(opts.have), pref, chicken3 };
     const pick = a => a[Math.floor(Math.random() * a.length)];
     let best = null;
     for (let run = 0; run < 25; run++) {
       // Start med kylling mandag, onsdag og fredag når det er muligt
       let w = P.map((p, d) => {
-        const want = d % 2 === 0;
+        const want = chicken3 ? d % 2 === 0 : Math.random() < 0.4;
         const sub = p.filter(r => r.chicken === want);
         return pick(sub.length ? sub : p);
       });
@@ -439,6 +454,44 @@ const Engine = (() => {
     return String(r).replace(".", ",");
   }
 
+  // ---------- Omregning til et andet antal personer ----------
+  // Opskriftsbanken er skrevet til 3 personer (3,5 voksenportioner).
+  const BASE_PERSONS = 3;
+
+  function roundQ(v, u) {
+    if (u === "g") return v < 100 ? Math.round(v / 5) * 5 : v < 500 ? Math.round(v / 10) * 10 : Math.round(v / 50) * 50;
+    if (u === "kg") return Math.round(v * 10) / 10;
+    if (["dl", "l", "spsk", "tsk"].includes(u)) return Math.max(0.5, Math.round(v * 2) / 2);
+    // Hele enheder rundes til nærmeste, med et lille skub opad (1,67 -> 2, 3,33 -> 3)
+    if (["fed", "cm", "ds", "bdt", "stængler", "pose"].includes(u)) return Math.max(1, Math.round(v + 0.1));
+    return v < 1 ? Math.max(0.5, Math.ceil(v * 2) / 2) : Math.round(v + 0.1);
+  }
+
+  const UNITS = "g|kg|dl|l|spsk|tsk|ds|fed|cm|bdt|stk|stængler|pose";
+  // Tal efterfulgt af en enhed eller et ord - men ikke procenter, minutter, grader eller størrelser som "i 2 cm tern"
+  const NUM_RE = new RegExp(`(^|[^\\w%])(\\d+(?:,\\d+)?(?:-\\d+)?|½)(\\s+)(?!min\\b|minutter|grader|sek\\b)((?:${UNITS})\\b|[a-zæøå])`, "gi");
+  const STEP_RE = new RegExp(`(^|[^\\w%])(\\d+(?:,\\d+)?(?:-\\d+)?|½)(\\s+)((?:g|dl|spsk|tsk|ds)\\b)`, "gi");
+
+  function scaleText(s, f, re) {
+    if (f === 1) return s;
+    return s.replace(re, (all, pre, n, sp, next, off, str) => {
+      if (/\bi\s*$/.test(str.slice(0, off + pre.length)) && /^cm/i.test(next)) return all;
+      // "g" kan både være gram og starten af "gulerødder" - en enhed står alene
+      const after = str[off + all.length] || "";
+      const u = new RegExp(`^(${UNITS})$`, "i").test(next) && !/[a-zæøå]/i.test(after) ? next.toLowerCase() : "stk";
+      const sc = n.split("-").map(x => fmtN(roundQ(num(x) * f, u)));
+      return pre + sc.join("-") + sp + next;
+    });
+  }
+
+  function scaled(r, persons) {
+    const f = (persons || BASE_PERSONS) / BASE_PERSONS;
+    return {
+      display: r.display.map(d => scaleText(d, f, NUM_RE)),
+      steps: r.steps.map(s => scaleText(s, f, STEP_RE)),
+    };
+  }
+
   function fmtQty(key, q) {
     const parts = [];
     for (const [u, v] of Object.entries(q)) {
@@ -450,7 +503,8 @@ const Engine = (() => {
     return parts.join(" + ");
   }
 
-  function shopping(recipes) {
+  function shopping(recipes, persons) {
+    const f = (persons || BASE_PERSONS) / BASE_PERSONS;
     const map = new Map();
     for (const r of recipes) for (const it of r.items) {
       let e = map.get(it.key);
@@ -459,6 +513,7 @@ const Engine = (() => {
       if (qty == null && DEFAULT_QTY[it.key]) [qty, unit] = DEFAULT_QTY[it.key];
       if (qty != null) e.q[unit] = (e.q[unit] || 0) + qty;
     }
+    if (f !== 1) for (const e of map.values()) for (const u in e.q) e.q[u] = roundQ(e.q[u] * f, u);
     return Object.entries(GROUPS).map(([g, label]) => ({
       g: label,
       items: [...map.values()].filter(e => e.group === g).sort((a, b) => a.order - b.order)
@@ -483,5 +538,5 @@ const Engine = (() => {
     return isoWeek(d);
   }
 
-  return { DAYS, LOCKS, parse, search, shopping, nextWeek };
+  return { DAYS, LOCKS, PREFS, parse, search, shopping, scaled, nextWeek };
 })();
