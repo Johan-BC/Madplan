@@ -1,0 +1,51 @@
+name: Hent inspiration
+
+# Startes fra appens Inspiration-fane (knappen "Opdater opskrifter") eller manuelt under Actions.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: inspiration
+  cancel-in-progress: false
+
+jobs:
+  hent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Claude henter nye retter
+        uses: anthropics/claude-code-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Du kører i GitHub Actions for Madplan-appen. Følg HENT-INSPIRATION.md præcist:
+            hent nye retter fra siderne i inspiration.json, skriv dem om og ind i retter.md,
+            og tilføj en post pr. side i log i inspiration.json med dagens dato.
+            Kør til sidst `node tools/check.js` og ret fejlene, indtil den består.
+            Commit og push ikke - workflowen gør det bagefter.
+          claude_args: >-
+            --max-turns 80
+            --allowedTools "WebFetch,WebSearch,Read,Edit,Write,Glob,Grep,Bash(node tools/check.js)"
+
+      - name: Tjek at appen kan læse opskriftsbanken
+        run: node tools/check.js
+
+      - name: Commit og push
+        run: |
+          git config user.name "Madplan inspiration"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add retter.md inspiration.json engine.js sw.js
+          if git diff --cached --quiet; then
+            echo "Ingen ændringer."
+          else
+            git commit -m "Inspiration: nye retter fra inspirationssiderne"
+            git push
+          fi

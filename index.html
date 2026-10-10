@@ -13,8 +13,9 @@
 <style>
   :root{
     --ink:#15181C;--ink-soft:#5B6169;--line:#DBD9D2;--page:#F2F1EC;--card:#FFFFFF;
-    --shop:#1F4C66;--shop-tint:#E8EFF3;--cook:#8A2F16;--cook-tint:#F6E9E3;
-    --accent:var(--shop);--accent-tint:var(--shop-tint);
+    --plan:#2F5D3A;--plan-tint:#E5EEE6;--shop:#1F4C66;--shop-tint:#E8EFF3;--cook:#8A2F16;--cook-tint:#F6E9E3;
+    --insp:#5B3E7A;--insp-tint:#EEE8F4;--warn:#8A5A00;--warn-tint:#FBF1DC;
+    --accent:var(--plan);--accent-tint:var(--plan-tint);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--page)}
@@ -24,19 +25,82 @@
     padding:env(safe-area-inset-top) 0 calc(56px + env(safe-area-inset-bottom));
     font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;
   }
+  #mp[data-mode="shop"]{--accent:var(--shop);--accent-tint:var(--shop-tint)}
   #mp[data-mode="cook"]{--accent:var(--cook);--accent-tint:var(--cook-tint)}
+  #mp[data-mode="insp"]{--accent:var(--insp);--accent-tint:var(--insp-tint)}
   .top{padding:22px 18px 0}
   .wk{font-size:13px;color:var(--ink-soft);margin:0 0 2px}
   .ttl{font-size:30px;font-weight:760;letter-spacing:-.025em;line-height:1.05;margin:0}
   .modes{display:flex;gap:8px;padding:18px 18px 14px;position:sticky;top:0;z-index:20;background:var(--page)}
   .modes::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
-  .mode{flex:1;appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);
-    font:inherit;font-weight:640;font-size:16px;padding:13px 8px;border-radius:11px;cursor:pointer;
+  .modes{gap:6px}
+  .mode{flex:1;min-width:0;appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);
+    font:inherit;font-weight:640;font-size:13.5px;padding:12px 2px;border-radius:11px;cursor:pointer;
     transition:background .12s,color .12s,border-color .12s}
   .mode[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-  .mode:focus-visible,.day:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .mode:focus-visible,.day:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
   .pane{padding:16px 18px 0}
   .pane[hidden]{display:none}
+
+  /* Plan */
+  .week{list-style:none;margin:0 0 14px;padding:0;background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .week li+li{border-top:1px solid var(--line)}
+  .pd{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 15px}
+  .pd-main{flex:1;min-width:0;appearance:none;border:0;background:none;text-align:left;font:inherit;color:inherit;padding:0;cursor:pointer}
+  .pd-day{display:block;font-size:12.5px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+  .pd-name{display:block;font-size:17.5px;font-weight:680;line-height:1.25;margin:1px 0 2px}
+  .pd-meta{display:block;font-size:13.5px;color:var(--ink-soft)}
+  .pd-meta em{font-style:normal;color:var(--accent);font-weight:650}
+  .swap{flex:0 0 auto;appearance:none;border:1.5px solid var(--line);background:var(--page);color:var(--ink);
+    font:inherit;font-size:14px;font-weight:620;padding:9px 13px;border-radius:9px;cursor:pointer}
+  .warn{background:var(--warn-tint);color:var(--warn);border-radius:11px;padding:11px 14px;font-size:14px;margin:0 0 14px}
+  .warn p{margin:0}.warn p+p{margin-top:4px}
+  .new{background:var(--card);border:1px solid var(--line);border-radius:13px;margin:0 0 14px}
+  .new summary{list-style:none;cursor:pointer;padding:15px 17px;font-weight:700;font-size:16px;color:var(--accent);display:flex;justify-content:space-between}
+  .new summary::-webkit-details-marker{display:none}
+  .new summary::after{content:"+";font-size:20px;line-height:1}
+  .new[open] summary::after{content:"–"}
+  .form{padding:0 17px 17px}
+  .fld{display:block;margin:0 0 14px}
+  .fld>span{display:block;font-size:13.5px;font-weight:650;color:var(--ink-soft);margin:0 0 5px}
+  .fld small{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:4px}
+  .fld input,.lk select{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--page);color:var(--ink)}
+  .fld input[type=number]{width:90px}
+  .chk{display:flex;gap:10px;align-items:center;font-size:15.5px;margin:0 0 16px;cursor:pointer}
+  .chk input{width:22px;height:22px;accent-color:var(--accent)}
+  .lk{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+  .lk span{flex:0 0 72px;font-size:14.5px;font-weight:620}
+  .lk select{flex:1;min-width:0;padding:8px 10px;font-size:15px}
+  .locks-h{font-size:13.5px;font-weight:650;color:var(--ink-soft);margin:4px 0 8px}
+  .go{width:100%;appearance:none;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:700;font-size:17px;
+    padding:14px;border-radius:11px;margin-top:10px;cursor:pointer}
+  .go:disabled{opacity:.5;cursor:default}
+  .sync a{color:inherit;font-weight:650}
+  .rules{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:4px 0 0}
+
+  /* Inspiration */
+  .lead{font-size:15px;color:var(--ink-soft);margin:0 0 16px;line-height:1.5}
+  .sec{font-size:14px;font-weight:700;color:var(--accent);margin:24px 0 8px}
+  .list{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .list li{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 15px}
+  .list li+li{border-top:1px solid var(--line)}
+  .list .tx{flex:1;min-width:0}
+  .list b{display:block;font-size:16.5px;font-weight:650;overflow-wrap:anywhere}
+  .list small{display:block;font-size:13.5px;color:var(--ink-soft)}
+  .list a{color:inherit;text-decoration:none}
+  .del{flex:0 0 auto;appearance:none;border:1.5px solid var(--line);background:var(--page);color:var(--ink-soft);
+    font:inherit;font-size:14px;padding:7px 11px;border-radius:9px;cursor:pointer}
+  .add{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;margin:12px 0 0}
+  .add input{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--page);color:var(--ink);margin:0 0 8px}
+  .btn{appearance:none;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:680;font-size:15.5px;padding:11px 16px;border-radius:10px;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+  .sync{font-size:14px;margin:12px 0 0;padding:11px 14px;border-radius:11px;background:var(--accent-tint);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .sync.bad{background:var(--warn-tint);color:var(--warn)}
+  .gh{padding:0 17px 17px;font-size:14px;color:var(--ink-soft);line-height:1.55}
+  .gh p{margin:0 0 10px}
+  .gh input{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--page);color:var(--ink);margin:0 0 10px}
+
+  /* Indkøb */
   .meter{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:2px 0 18px}
   .meter b{font-size:21px;font-weight:720;font-variant-numeric:tabular-nums}
   .meter span{font-size:14px;color:var(--ink-soft)}
@@ -58,9 +122,11 @@
   .row.on .nm,.row.on .qt{color:#A7A9A4;text-decoration:line-through}
   .tag{display:inline-block;font-size:12px;font-weight:650;color:var(--ink-soft);border:1px solid var(--line);
     border-radius:5px;padding:1px 5px;margin-left:7px;vertical-align:1px;text-decoration:none!important}
-  .days{display:flex;gap:7px;margin:0 0 18px;flex-wrap:wrap}
-  .day{flex:1 1 0;min-width:82px;appearance:none;border:1.5px solid var(--line);background:var(--card);
-    color:var(--ink-soft);font:inherit;font-weight:640;font-size:15px;padding:11px 4px;border-radius:10px;cursor:pointer}
+
+  /* Madlavning */
+  .days{display:flex;gap:7px;margin:0 0 18px}
+  .day{flex:1 1 0;min-width:0;appearance:none;border:1.5px solid var(--line);background:var(--card);
+    color:var(--ink-soft);font:inherit;font-weight:640;font-size:15px;padding:11px 2px;border-radius:10px;cursor:pointer}
   .day[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
   .dish{font-size:27px;font-weight:750;letter-spacing:-.02em;line-height:1.12;margin:0 0 12px}
   .stats{display:flex;gap:10px;margin:0 0 20px}
@@ -84,99 +150,411 @@
   .foot{margin:22px 0 0;font-size:13.5px;color:var(--ink-soft);display:flex;justify-content:space-between;
     gap:12px;align-items:center}
   .note{padding:0;margin:26px 0 0;font-size:14px;color:var(--ink-soft);line-height:1.55}
-  .empty{padding:40px 18px;color:var(--ink-soft);font-size:16px;line-height:1.6}
+  .empty{padding:24px 0;color:var(--ink-soft);font-size:16px;line-height:1.6}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div id="mp" data-mode="shop">
+<div id="mp" data-mode="plan">
   <div class="top">
-    <p class="wk" id="sub">Henter planen</p>
+    <p class="wk" id="sub">Henter opskrifterne</p>
     <h1 class="ttl">Madplan</h1>
   </div>
   <div class="modes" role="tablist">
-    <button class="mode" role="tab" id="m-shop" aria-selected="true" aria-controls="p-shop">Indkøb</button>
+    <button class="mode" role="tab" id="m-plan" aria-selected="true" aria-controls="p-plan">Plan</button>
+    <button class="mode" role="tab" id="m-shop" aria-selected="false" aria-controls="p-shop">Indkøb</button>
     <button class="mode" role="tab" id="m-cook" aria-selected="false" aria-controls="p-cook">Madlavning</button>
+    <button class="mode" role="tab" id="m-insp" aria-selected="false" aria-controls="p-insp">Inspiration</button>
   </div>
-  <section class="pane" id="p-shop" role="tabpanel" aria-labelledby="m-shop">
+
+  <section class="pane" id="p-plan" role="tabpanel" aria-labelledby="m-plan">
+    <div id="week"></div>
+    <div id="warn"></div>
+    <details class="new" id="new">
+      <summary>Lav ny plan</summary>
+      <div class="form">
+        <label class="fld"><span>Uge</span><input id="f-week" type="number" min="1" max="53" inputmode="numeric"></label>
+        <label class="fld"><span>Noget der skal bruges?</span>
+          <input id="f-have" type="text" placeholder="fx torsk, spidskål" autocomplete="off">
+          <small>Mandagens ret bygges op om det. Flere ting adskilles med komma.</small></label>
+        <label class="chk"><input id="f-fish" type="checkbox"> Fisk og skaldyr må gerne være med</label>
+        <p class="locks-h">Ønsker til bestemte dage</p>
+        <div id="f-locks"></div>
+        <button class="go" id="f-go">Lav planen</button>
+        <p class="rules">Kylling mandag, onsdag og fredag i tre forskellige køkkener og teknikker. Mindst tre retter under 25 minutter, ingen fisk medmindre du beder om det, ikke to gryderetter i træk, ikke ris hver dag, og ingen gentagelser fra sidste plan.</p>
+      </div>
+    </details>
+  </section>
+
+  <section class="pane" id="p-shop" role="tabpanel" aria-labelledby="m-shop" hidden>
     <div class="meter">
       <div><b id="count">0 af 0</b> <span>i kurven</span></div>
       <button class="reset" id="reset">Ryd afkrydsning</button>
     </div>
     <div id="list"></div>
-    <p class="note" id="tip"></p>
+    <p class="note">Salt, peber, olie og sukker er ikke med. Varer mærket <span class="tag">tjek</span> har du nok i skabet, men retten falder hvis de mangler.</p>
   </section>
+
   <section class="pane" id="p-cook" role="tabpanel" aria-labelledby="m-cook" hidden>
     <div class="days" role="tablist" id="days"></div>
     <div id="recipe"></div>
     <div class="foot"><span id="wake">Skærmen slukker som normalt</span><button class="reset" id="resetsteps">Ryd trin</button></div>
   </section>
+
+  <section class="pane" id="p-insp" role="tabpanel" aria-labelledby="m-insp" hidden>
+    <p class="lead">Sider Claude henter nye retter fra. Retterne skrives om, så de passer til reglerne - 3 personer, højst 30 minutter og mindst 35 g protein - og kommer derefter med i planerne.</p>
+    <ul class="list" id="sites"></ul>
+    <div class="add">
+      <input id="i-url" type="url" inputmode="url" placeholder="www.valdemarsro.dk" autocomplete="off">
+      <input id="i-note" type="text" placeholder="Note til Claude (valgfri), fx kun asiatisk" autocomplete="off">
+      <button class="btn" id="i-add">Tilføj side</button>
+    </div>
+    <div id="sync"></div>
+    <button class="go" id="i-update">Opdater opskrifter</button>
+    <p class="rules">Claude besøger siderne, vælger retter der passer til reglerne og lægger dem i opskriftsbanken. Det tager typisk 5-10 minutter, og du kan godt lukke appen imens.</p>
+    <div id="upd"></div>
+    <h2 class="sec">Retter fra inspiration</h2>
+    <div id="from"></div>
+    <h2 class="sec">Seneste hentninger</h2>
+    <div id="log"></div>
+    <details class="new" id="gh" style="margin-top:24px">
+      <summary>GitHub-adgang</summary>
+      <div class="gh">
+        <p>For at appen kan gemme listen og starte "Opdater opskrifter", skal du indsætte en adgangsnøgle: GitHub -> Settings -> Developer settings -> Fine-grained tokens. Giv kun adgang til Madplan-repoet med "Contents: Read and write" og "Actions: Read and write".</p>
+        <p>Nøglen gemmes kun på denne telefon.</p>
+        <input id="i-token" type="password" placeholder="github_pat_…" autocomplete="off">
+        <button class="btn" id="i-savetok">Gem nøgle</button> <button class="btn ghost" id="i-deltok">Fjern nøgle</button>
+      </div>
+    </details>
+  </section>
 </div>
 
+<script src="./engine.js"></script>
 <script>
-const K={shop:"madplan:kurv",steps:"madplan:trin",plan:"madplan:plan",data:"madplan:data"};
-let DATA=null,state={shop:{},steps:{}},day=0,lock=null;
+const K={shop:"madplan:kurv",steps:"madplan:trin",plan:"madplan:uge",hist:"madplan:historik",md:"madplan:retter",form:"madplan:form",
+  insp:"madplan:inspiration",dirty:"madplan:inspiration-ugemt",token:"madplan:github",run:"madplan:opdatering"};
+const WF="inspiration.yml";
+let insp={sites:[],log:[]};
+const SHORT=["Man","Tir","Ons","Tor","Fre"];
+let R=[],BY={},plan=null,state={shop:{},steps:{}},day=0,lock=null,seen=[[],[],[],[],[]];
 
 const store={
-  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
-  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function sig(d){return d.days.map(x=>x.dish).join("|")+"::"+d.shop.map(g=>g.items.length).join(",")}
+// Med nøgle læses filerne direkte fra repoet, så nye retter ses uden at vente på GitHub Pages
+async function fetchFile(path){
+  try{return await ghRaw(path);}catch(e){}
+  const r=await fetch("./"+path,{cache:"no-store"});
+  if(!r.ok)throw 0;
+  return r.text();
+}
 
 async function boot(){
+  let md=null;
   try{
-    const r=await fetch("./plan.json",{cache:"no-store"});
-    if(!r.ok) throw 0;
-    DATA=await r.json();
-    store.set(K.data,JSON.stringify(DATA));
-  }catch(e){
-    const c=store.get(K.data);
-    if(c) DATA=JSON.parse(c);
-  }
-  if(!DATA){
-    document.getElementById("mp").innerHTML='<p class="empty">Planen kunne ikke hentes, og der ligger ingen gemt udgave i telefonen. Åbn appen én gang med netforbindelse.</p>';
+    md=await fetchFile("retter.md");
+    store.set(K.md,md);
+  }catch(e){md=store.get(K.md,null);}
+  if(!md){
+    $("p-plan").innerHTML='<p class="empty">Opskrifterne kunne ikke hentes, og der ligger ingen gemt udgave i telefonen. Åbn appen én gang med netforbindelse.</p>';
+    $("sub").textContent="";
     return;
   }
-  const s=sig(DATA);
-  if(store.get(K.plan)!==s){
-    state={shop:{},steps:{}};
-    store.set(K.plan,s);store.set(K.shop,"{}");store.set(K.steps,"{}");
-  }else{
-    try{state.shop=JSON.parse(store.get(K.shop)||"{}");state.steps=JSON.parse(store.get(K.steps)||"{}")}catch(e){}
+  state.shop=store.get(K.shop,{});
+  state.steps=store.get(K.steps,{});
+  plan=store.get(K.plan,null);
+  applyMd(md);
+  if(!plan) $("new").open=true;
+  loadInsp();
+  pollUpdate();
+}
+
+function applyMd(md){
+  R=Engine.parse(md);
+  BY=Object.fromEntries(R.map(r=>[r.id,r]));
+  if(plan){
+    // Er en ret forsvundet fra opskriftsbanken, fyldes dagen op igen
+    const gone=plan.ids.map((id,i)=>BY[id]?-1:i).filter(i=>i>=0);
+    gone.forEach(i=>refill(i,false));
+    if(gone.length) save();
   }
-  document.getElementById("sub").textContent=DATA.sub||"";
-  document.getElementById("tip").textContent=DATA.tip||"";
-  renderShop();renderCook();
+  buildForm();
+  renderAll();
+}
+
+function renderAll(){renderPlan();renderShop();renderCook();renderInsp();}
+
+// ---------- Inspiration ----------
+
+function repo(){
+  const h=location.hostname.match(/^([^.]+)\.github\.io$/);
+  const p=location.pathname.split("/").filter(Boolean)[0];
+  return h&&p&&!p.includes(".")?h[1]+"/"+p:"Johan-BC/Madplan";
+}
+const host=u=>{try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return u}};
+
+async function loadInsp(){
+  insp=store.get(K.insp,insp);
+  renderInsp();
+  if(store.get(K.dirty,false))return;   // lokale ændringer vinder, til de er gemt
+  try{
+    insp=JSON.parse(await fetchFile("inspiration.json"));
+    insp.sites=insp.sites||[];insp.log=insp.log||[];
+    store.set(K.insp,insp);
+    renderInsp();
+  }catch(e){}
+}
+
+function renderInsp(){
+  $("sites").innerHTML=insp.sites.length?insp.sites.map((s,i)=>
+    `<li><div class="tx"><a href="${esc(s.url)}" target="_blank" rel="noopener"><b>${esc(host(s.url))}</b></a>${s.note?`<small>${esc(s.note)}</small>`:""}</div><button class="del" data-del="${i}">Fjern</button></li>`).join("")
+    :'<li><div class="tx"><small>Ingen sider endnu.</small></div></li>';
+  const dirty=store.get(K.dirty,false),tok=store.get(K.token,"");
+  $("sync").innerHTML=!dirty?"":
+    `<div class="sync bad"><span>Ændringerne er kun gemt på telefonen. Claude ser dem først, når de er gemt på GitHub.</span>`+
+    (tok?`<button class="btn" id="i-push">Gem på GitHub</button>`:`<button class="btn" id="i-copy">Kopiér og åbn GitHub</button>`)+`</div>`;
+  const from=R.filter(r=>r.source);
+  $("from").innerHTML=from.length?'<ul class="list">'+from.map(r=>
+    `<li><div class="tx"><b>${esc(r.name)}</b><small>${esc(r.source)} · ${esc(r.cuisine)} · ${esc(r.timeStr)} · ${r.protShown} g</small></div></li>`).join("")+"</ul>"
+    :'<p class="lead">Ingen endnu. Når Claude har hentet retter fra siderne, står de her, og så kommer de med i planerne.</p>';
+  const log=(insp.log||[]).slice(-5).reverse();
+  $("log").innerHTML=log.length?'<ul class="list">'+log.map(l=>
+    `<li><div class="tx"><b>${esc(l.date)}</b><small>${esc(l.site||"")} · ${(l.added||[]).length===1?"1 ny ret":(l.added||[]).length+" nye retter"}${(l.added||[]).length?": "+esc(l.added.join(", ")):""}</small></div></li>`).join("")+"</ul>"
+    :'<p class="lead">Claude har ikke hentet noget endnu.</p>';
+  $("i-token").value=tok?"••••••••":"";
+}
+
+function changeInsp(){
+  store.set(K.insp,insp);store.set(K.dirty,true);
+  renderInsp();
+  if(store.get(K.token,""))pushInsp();
+}
+
+function addSite(){
+  let u=$("i-url").value.trim();
+  if(!u)return;
+  if(!/^https?:\/\//i.test(u))u="https://"+u;
+  try{u=new URL(u).origin+new URL(u).pathname.replace(/\/$/,"");}catch(e){alert("Det ligner ikke en webadresse.");return;}
+  if(insp.sites.some(s=>host(s.url)===host(u))){alert(host(u)+" er allerede på listen.");return;}
+  insp.sites.push({url:u,note:$("i-note").value.trim()});
+  $("i-url").value="";$("i-note").value="";
+  changeInsp();
+}
+
+const b64=s=>btoa(unescape(encodeURIComponent(s)));
+async function pushInsp(){
+  const tok=store.get(K.token,"");
+  const api=`https://api.github.com/repos/${repo()}/contents/inspiration.json`;
+  const h={Authorization:"Bearer "+tok,Accept:"application/vnd.github+json"};
+  $("sync").innerHTML='<div class="sync"><span>Gemmer på GitHub…</span></div>';
+  try{
+    // Hent seneste udgave, så Claudes log ikke overskrives
+    const cur=await fetch(api+"?ref=main",{headers:h,cache:"no-store"});
+    let sha,remote={};
+    if(cur.ok){const j=await cur.json();sha=j.sha;try{remote=JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,"")))))}catch(e){}}
+    else if(cur.status!==404)throw new Error(cur.status===401?"Nøglen virker ikke":"GitHub svarede "+cur.status);
+    insp.log=remote.log||insp.log||[];
+    const body={message:"Inspiration: opdater listen over sider",content:b64(JSON.stringify(insp,null,2)+"\n"),branch:"main"};
+    if(sha)body.sha=sha;
+    const put=await fetch(api,{method:"PUT",headers:h,body:JSON.stringify(body)});
+    if(!put.ok)throw new Error(put.status===401||put.status===403?"Nøglen har ikke skriveadgang":"GitHub svarede "+put.status);
+    store.set(K.insp,insp);store.set(K.dirty,false);
+    renderInsp();
+    $("sync").innerHTML='<div class="sync"><span>Gemt på GitHub.</span></div>';
+  }catch(e){
+    renderInsp();
+    $("sync").insertAdjacentHTML("beforeend",`<p class="lead" style="margin-top:8px;color:var(--warn)">Kunne ikke gemme: ${esc(e.message||"ingen forbindelse")}.</p>`);
+  }
+}
+
+function gh(path,opt){
+  opt=opt||{};
+  return fetch(`https://api.github.com/repos/${repo()}/${path}`,{...opt,cache:"no-store",
+    headers:{Authorization:"Bearer "+store.get(K.token,""),Accept:"application/vnd.github+json",...(opt.headers||{})}});
+}
+async function ghRaw(path){
+  if(!store.get(K.token,""))throw 0;
+  const r=await gh(`contents/${path}?ref=main`,{headers:{Accept:"application/vnd.github.raw+json"}});
+  if(!r.ok)throw 0;
+  return r.text();
+}
+
+function updMsg(html,bad){$("upd").innerHTML=`<div class="sync${bad?" bad":""}"><span>${html}</span></div>`;}
+
+// "Opdater opskrifter": start workflowen, hvor Claude henter nye retter og pusher dem
+async function startUpdate(){
+  if(store.get(K.run,null)){pollUpdate();return;}
+  if(!store.get(K.token,"")){updMsg("Kræver en GitHub-nøgle - se GitHub-adgang nederst.",true);$("gh").open=true;return;}
+  if(store.get(K.dirty,false)){await pushInsp();if(store.get(K.dirty,false))return;}
+  if(!insp.sites.length){updMsg("Tilføj mindst én side først.",true);return;}
+  updMsg("Starter…");
+  const since=Date.now();
+  let r;
+  try{r=await gh(`actions/workflows/${WF}/dispatches`,{method:"POST",body:JSON.stringify({ref:"main"})});}
+  catch(e){updMsg("Ingen forbindelse til GitHub.",true);return;}
+  if(r.status!==204){
+    updMsg(r.status===401||r.status===403?"Nøglen mangler adgangen \"Actions: Read and write\".":
+      r.status===404?"Workflowen findes ikke i repoet endnu.":"GitHub svarede "+r.status+".",true);
+    return;
+  }
+  store.set(K.run,{since,id:null,before:R.map(x=>x.id)});
+  pollUpdate();
+}
+
+let polling=false;
+async function pollUpdate(){
+  if(polling||!store.get(K.run,null))return;
+  polling=true;$("i-update").disabled=true;
+  try{
+    for(;;){
+      const run=store.get(K.run,null);
+      if(!run)break;
+      let info=null;
+      if(!run.id){
+        const r=await gh(`actions/workflows/${WF}/runs?event=workflow_dispatch&per_page=5`);
+        if(r.ok){
+          const j=await r.json();
+          info=(j.workflow_runs||[]).find(x=>Date.parse(x.created_at)>=run.since-60000);
+          if(info){run.id=info.id;store.set(K.run,run);}
+        }
+      }else{
+        const r=await gh(`actions/runs/${run.id}`);
+        if(r.ok)info=await r.json();
+      }
+      if(info&&info.status==="completed"){await finishUpdate(info,run);break;}
+      if(Date.now()-run.since>45*60000){store.set(K.run,null);updMsg("Opdateringen blev ikke færdig. Prøv igen senere.",true);break;}
+      const min=Math.floor((Date.now()-run.since)/60000);
+      updMsg(`Claude leder efter nye retter… ${min} min`+(info?` · <a href="${esc(info.html_url)}" target="_blank" rel="noopener">følg på GitHub</a>`:""));
+      await new Promise(res=>setTimeout(res,10000));
+    }
+  }catch(e){updMsg("Mistede forbindelsen til GitHub. Åbn appen igen for at følge med.",true);}
+  polling=false;$("i-update").disabled=false;
+}
+
+async function finishUpdate(info,run){
+  store.set(K.run,null);
+  if(info.conclusion!=="success"){
+    updMsg(`Opdateringen fejlede, og opskriftsbanken er uændret. <a href="${esc(info.html_url)}" target="_blank" rel="noopener">Se hvorfor på GitHub</a>`,true);
+    return;
+  }
+  try{const md=await ghRaw("retter.md");store.set(K.md,md);applyMd(md);}catch(e){}
+  try{insp=JSON.parse(await ghRaw("inspiration.json"));store.set(K.insp,insp);renderInsp();}catch(e){}
+  const nye=R.filter(r=>!run.before.includes(r.id));
+  updMsg(nye.length?`${nye.length===1?"1 ny ret":nye.length+" nye retter"}: ${nye.map(r=>esc(r.name)).join(", ")}. De er med i næste plan.`
+    :"Ingen nye retter denne gang - se loggen herunder.");
+}
+
+async function copyInsp(){
+  const txt=JSON.stringify(insp,null,2)+"\n";
+  try{await navigator.clipboard.writeText(txt);}catch(e){prompt("Kopiér teksten:",txt);}
+  window.open(`https://github.com/${repo()}/edit/main/inspiration.json`,"_blank");
+  if(confirm("Når du har indsat teksten og trykket Commit på GitHub: markér listen som gemt?")){store.set(K.dirty,false);renderInsp();}
+}
+
+function sub(){
+  $("sub").textContent=plan?`Uge ${plan.week} · mandag til fredag · 3 personer`:`${R.length} retter i opskriftsbanken`;
+}
+
+function buildForm(){
+  const f=store.get(K.form,{});
+  $("f-week").value=Engine.nextWeek();
+  $("f-have").value="";
+  $("f-fish").checked=false;
+  const sections=[...new Set(R.map(r=>r.section))];
+  const opts=Engine.LOCKS.map(([v,l])=>`<option value="${v}">${l}</option>`).join("")+
+    sections.map(s=>`<optgroup label="${esc(s)}">`+R.filter(r=>r.section===s).map(r=>`<option value="dish:${r.id}">${esc(r.name)}</option>`).join("")+`</optgroup>`).join("");
+  $("f-locks").innerHTML=Engine.DAYS.map((d,i)=>`<label class="lk"><span>${d}</span><select id="f-l${i}">${opts}</select></label>`).join("");
+  (f.locks||[]).forEach((v,i)=>{const s=$("f-l"+i);if(s&&[...s.options].some(o=>o.value===v))s.value=v;});
+}
+
+function readLocks(){
+  return Engine.DAYS.map((_,i)=>{const v=$("f-l"+i).value;return v.startsWith("dish:")?{type:"dish",id:v.slice(5)}:{type:v};});
+}
+
+function makePlan(){
+  if(plan&&!confirm("Erstat den nuværende plan? Indkøbslisten nulstilles."))return;
+  const opts={have:$("f-have").value.trim(),fish:$("f-fish").checked,locks:readLocks()};
+  const hist=store.get(K.hist,[]);
+  if(plan) hist.unshift(plan.ids);
+  const res=Engine.search(R,{...opts,history:hist});
+  store.set(K.hist,hist.slice(0,4));
+  store.set(K.form,{locks:Engine.DAYS.map((_,i)=>$("f-l"+i).value)});
+  plan={week:+$("f-week").value||Engine.nextWeek(),ids:res.ids,warnings:res.warnings,opts};
+  seen=res.ids.map(id=>[id]);
+  state={shop:{},steps:{}};
+  store.set(K.shop,{});store.set(K.steps,{});
+  save();
+  $("new").open=false;
+  day=0;renderAll();window.scrollTo(0,0);
+}
+
+// Find en ny ret til én dag, mens resten af ugen står fast
+function refill(d,cycle){
+  const fixed=plan.ids.map((id,i)=>i===d||!BY[id]?null:id);
+  if(cycle){
+    seen[d]=seen[d]||[];
+    if(!seen[d].includes(plan.ids[d]))seen[d].push(plan.ids[d]);
+  }
+  const exclude=Engine.DAYS.map((_,i)=>i===d?seen[d]||[]:[]);
+  let res=Engine.search(R,{...plan.opts,fixed,exclude,history:store.get(K.hist,[])});
+  if(res.ids[d]===plan.ids[d]&&cycle){
+    seen[d]=[plan.ids[d]];
+    res=Engine.search(R,{...plan.opts,fixed,exclude:Engine.DAYS.map((_,i)=>i===d?seen[d]:[]),history:store.get(K.hist,[])});
+  }
+  plan.ids=res.ids;plan.warnings=res.warnings;
+  if(cycle)seen[d].push(res.ids[d]);
+  Object.keys(state.steps).forEach(k=>{if(!plan.ids.some(id=>k.startsWith(id+"-")))delete state.steps[k];});
+}
+
+function save(){store.set(K.plan,plan);store.set(K.steps,state.steps);}
+
+const TECH={gryde:"gryde",wok:"wok",ovn:"ovn",suppe:"suppe",salat:"salat",pande:"pande"};
+function renderPlan(){
+  sub();
+  if(!plan){$("week").innerHTML='<p class="empty">Ingen plan endnu. Lav en herunder.</p>';$("warn").innerHTML="";return;}
+  $("week").innerHTML='<ul class="week">'+plan.ids.map((id,i)=>{
+    const r=BY[id];
+    const prot=r.low?`${r.protShown} g m. tilbehør`:`${r.protShown} g`;
+    return `<li><div class="pd"><button class="pd-main" data-open="${i}"><span class="pd-day">${Engine.DAYS[i]}</span><span class="pd-name">${esc(r.name)}</span><span class="pd-meta">${r.chicken?"<em>Kylling</em> · ":""}${r.source?"<em>Ny</em> · ":""}${esc(r.cuisine)} · ${TECH[r.tech]} · ${esc(r.timeStr)} · ${prot}</span></button><button class="swap" data-swap="${i}">Byt</button></div></li>`;
+  }).join("")+'</ul>';
+  $("warn").innerHTML=plan.warnings&&plan.warnings.length?'<div class="warn">'+plan.warnings.map(w=>`<p>${esc(w)}</p>`).join("")+'</div>':"";
 }
 
 function renderShop(){
-  document.getElementById("list").innerHTML=DATA.shop.map((g,gi)=>
-    `<div class="grp"><h2>${g.g}</h2><ul>`+g.items.map((it,ii)=>{
-      const id=gi+"-"+ii,on=state.shop[id]?" on":"";
+  if(!plan){$("list").innerHTML='<p class="empty">Lav en plan først.</p>';$("count").textContent="0 af 0";return;}
+  const groups=Engine.shopping(plan.ids.map(id=>BY[id]));
+  $("list").innerHTML=groups.map(g=>
+    `<div class="grp"><h2>${g.g}</h2><ul>`+g.items.map(it=>{
+      const on=state.shop[it[0]]?" on":"";
       const tags=(it[2]||[]).map(t=>`<span class="tag">${t}</span>`).join("");
-      return `<li><div class="row${on}" data-id="${id}" role="checkbox" tabindex="0" aria-checked="${!!state.shop[id]}"><span class="box"></span><span class="nm">${it[0]}${tags}</span><span class="qt">${it[1]}</span></div></li>`;
+      return `<li><div class="row${on}" data-id="${esc(it[0])}" role="checkbox" tabindex="0" aria-checked="${!!state.shop[it[0]]}"><span class="box"></span><span class="nm">${esc(it[0])}${tags}</span><span class="qt">${esc(it[1])}</span></div></li>`;
     }).join("")+`</ul></div>`).join("");
-  const tot=DATA.shop.reduce((a,g)=>a+g.items.length,0);
-  document.getElementById("count").textContent=Object.values(state.shop).filter(Boolean).length+" af "+tot;
+  const names=groups.flatMap(g=>g.items.map(i=>i[0]));
+  $("count").textContent=names.filter(n=>state.shop[n]).length+" af "+names.length;
 }
 
 function renderCook(){
-  document.getElementById("days").innerHTML=DATA.days.map((d,i)=>
-    `<button class="day" role="tab" data-day="${i}" aria-selected="${i===day}">${d.d}</button>`).join("");
-  const d=DATA.days[day];
-  document.getElementById("recipe").innerHTML=
-    `<h2 class="dish">${d.dish}</h2>
-     <div class="stats"><div class="stat"><b>${d.time}</b><span>aktiv tid</span></div><div class="stat"><b>${d.prot}</b><span>protein pr. person</span></div></div>
-     <div class="ing"><h3>Ingredienser til ${DATA.pers||3}</h3><p>${d.ing.split("|").join('<i>/</i>')}</p></div>
-     <ol class="steps">`+d.steps.map((s,i)=>{
-       const id=day+"-"+i,on=state.steps[id]?" on":"";
-       return `<li><button class="step${on}" data-step="${id}"><p>${s}</p></button></li>`;
-     }).join("")+`</ol>`;
+  if(!plan){$("days").innerHTML="";$("recipe").innerHTML='<p class="empty">Lav en plan først.</p>';return;}
+  $("days").innerHTML=plan.ids.map((_,i)=>
+    `<button class="day" role="tab" data-day="${i}" aria-selected="${i===day}">${SHORT[i]}</button>`).join("");
+  const r=BY[plan.ids[day]];
+  const prot=r.low?`${r.protShown} g`:`${r.prot} g`;
+  $("recipe").innerHTML=
+    `<h2 class="dish">${esc(r.name)}</h2>
+     <div class="stats"><div class="stat"><b>${esc(r.timeStr.replace(/\s*\(.*?\)/,""))}</b><span>aktiv tid</span></div><div class="stat"><b>${prot}</b><span>protein pr. person</span></div></div>
+     <div class="ing"><h3>Ingredienser til 3</h3><p>${r.display.map(esc).join('<i>/</i>')}</p></div>
+     <ol class="steps">`+r.steps.map((s,i)=>{
+       const id=r.id+"-"+i,on=state.steps[id]?" on":"";
+       return `<li><button class="step${on}" data-step="${id}"><p>${esc(s)}</p></button></li>`;
+     }).join("")+`</ol>`+(r.note?`<p class="note">${esc(r.note)}</p>`:"");
 }
 
 async function wake(on){
-  const el=document.getElementById("wake");
+  const el=$("wake");
   try{
     if(on&&"wakeLock"in navigator){lock=await navigator.wakeLock.request("screen");el.textContent="Skærmen holdes tændt";}
     else if(lock){await lock.release();lock=null;el.textContent="Skærmen slukker som normalt";}
@@ -184,26 +562,45 @@ async function wake(on){
 }
 
 function mode(m){
-  document.getElementById("mp").dataset.mode=m;
-  document.getElementById("m-shop").setAttribute("aria-selected",m==="shop");
-  document.getElementById("m-cook").setAttribute("aria-selected",m==="cook");
-  document.getElementById("p-shop").hidden=m!=="shop";
-  document.getElementById("p-cook").hidden=m!=="cook";
+  $("mp").dataset.mode=m;
+  ["plan","shop","cook","insp"].forEach(x=>{$("m-"+x).setAttribute("aria-selected",x===m);$("p-"+x).hidden=x!==m;});
   wake(m==="cook");window.scrollTo(0,0);
 }
 
-document.getElementById("m-shop").onclick=()=>mode("shop");
-document.getElementById("m-cook").onclick=()=>mode("cook");
-document.getElementById("reset").onclick=()=>{state.shop={};store.set(K.shop,"{}");renderShop();};
-document.getElementById("resetsteps").onclick=()=>{
-  Object.keys(state.steps).forEach(k=>{if(k.startsWith(day+"-"))delete state.steps[k];});
-  store.set(K.steps,JSON.stringify(state.steps));renderCook();};
+$("m-plan").onclick=()=>mode("plan");
+$("m-shop").onclick=()=>mode("shop");
+$("m-cook").onclick=()=>mode("cook");
+$("m-insp").onclick=()=>mode("insp");
+$("i-add").onclick=addSite;
+$("i-update").onclick=startUpdate;
+$("i-url").onkeydown=e=>{if(e.key==="Enter")addSite();};
+$("i-savetok").onclick=()=>{
+  const v=$("i-token").value.trim();
+  if(!v||v.startsWith("•"))return;
+  store.set(K.token,v);renderInsp();
+  if(store.get(K.dirty,false))pushInsp();
+};
+$("i-deltok").onclick=()=>{store.set(K.token,"");renderInsp();};
+$("f-go").onclick=makePlan;
+$("reset").onclick=()=>{state.shop={};store.set(K.shop,{});renderShop();};
+$("resetsteps").onclick=()=>{
+  const id=plan&&plan.ids[day];
+  Object.keys(state.steps).forEach(k=>{if(k.startsWith(id+"-"))delete state.steps[k];});
+  store.set(K.steps,state.steps);renderCook();};
 
 document.addEventListener("click",e=>{
+  const del=e.target.closest("[data-del]");
+  if(del){const s=insp.sites[+del.dataset.del];if(confirm("Fjern "+host(s.url)+"?")){insp.sites.splice(+del.dataset.del,1);changeInsp();}return;}
+  if(e.target.id==="i-push"){pushInsp();return;}
+  if(e.target.id==="i-copy"){copyInsp();return;}
+  const sw=e.target.closest("[data-swap]");
+  if(sw){refill(+sw.dataset.swap,true);save();renderAll();return;}
+  const op=e.target.closest("[data-open]");
+  if(op){day=+op.dataset.open;renderCook();mode("cook");return;}
   const r=e.target.closest(".row");
-  if(r){const id=r.dataset.id;state.shop[id]=!state.shop[id];store.set(K.shop,JSON.stringify(state.shop));renderShop();return;}
+  if(r){const id=r.dataset.id;state.shop[id]=!state.shop[id];store.set(K.shop,state.shop);renderShop();return;}
   const s=e.target.closest(".step");
-  if(s){const id=s.dataset.step;state.steps[id]=!state.steps[id];store.set(K.steps,JSON.stringify(state.steps));renderCook();return;}
+  if(s){const id=s.dataset.step;state.steps[id]=!state.steps[id];store.set(K.steps,state.steps);renderCook();return;}
   const d=e.target.closest(".day");
   if(d){day=+d.dataset.day;renderCook();window.scrollTo(0,0);}
 });
@@ -211,7 +608,8 @@ document.addEventListener("keydown",e=>{
   if((e.key===" "||e.key==="Enter")&&e.target.classList&&e.target.classList.contains("row")){e.preventDefault();e.target.click();}
 });
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"&&document.getElementById("mp").dataset.mode==="cook")wake(true);
+  if(document.visibilityState==="visible"&&$("mp").dataset.mode==="cook")wake(true);
+  if(document.visibilityState==="visible")pollUpdate();
 });
 
 if("serviceWorker"in navigator){

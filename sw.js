@@ -1,5 +1,5 @@
-const CACHE = "madplan-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const CACHE = "madplan-v2";
+const SHELL = ["./", "./index.html", "./engine.js", "./retter.md", "./inspiration.json","./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -17,8 +17,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Planen hentes altid fra nettet først, så en ny madplan slår igennem med det samme.
-  if (url.pathname.endsWith("/plan.json")) {
+  // Opskriftsbanken og inspirationslisten hentes altid fra nettet først, så nye retter slår igennem med det samme.
+  if (/\/(retter\.md|inspiration\.json)$/.test(url.pathname)) {
     e.respondWith(
       fetch(e.request).then(r => {
         const copy = r.clone();
