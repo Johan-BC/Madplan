@@ -19,15 +19,15 @@ Sorterer en side næsten kun dansk eller bagværk, så tag færre eller ingen de
 
 ## 3. Skriv retten om
 
-Gengiv aldrig en opskrift ordret. Skriv den om i bankens eget format, skaleret til 3 personer (3,5 voksenportioner), med kort, imperative trin og parallelt arbejde peget ud:
+Gengiv aldrig en opskrift ordret. Skriv den om i bankens eget format, skaleret til 3 personer (3,5 voksenportioner). Trinene skal være grundige, så en uøvet kan følge dem: varme (lav/middel/høj), hvor fint der skæres, hvor længe, hvordan man ser at noget er færdigt, og hvad der laves imens. Typisk 4-6 trin på 2-3 sætninger. Start med risen, hvis retten har ris ("Sæt risen over: skyl 300 g jasminris, kog den i 4,5 dl vand ..."). Skriv mængder i trinene som `300 g`, `4,5 dl`, `2 spsk` - så regner appen dem om til andre antal personer.
 
 ```
 ### Navn på retten
 **Køkken · 22 min · 44 g protein**
 _Inspiration: valdemarsro.dk_
 650 g kyllingeoverlår i stykker · 2 løg · 4 fed hvidløg · ... · jasminris
-1. Ris over. ...
-2. ...
+1. Sæt risen over: skyl 300 g jasminris, kog den i 4,5 dl vand med lidt salt, læg låg på og lad den trække på laveste blus i 12 min. Lad den hvile 5 min.
+2. Skær kyllingen i mundrette stykker og hak løgene fint. Steg løgene i 2 spsk olie ved middel varme i 5 min, til de er bløde og gyldne. ...
 ```
 
 - Mængder i g, dl, spsk, tsk, ds, fed, cm, bdt. Ingredienser adskilt af ` · `. Underlister som `sauce: 3 spsk soja, 1 spsk sukker`.

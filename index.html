@@ -260,7 +260,12 @@
 <script>
 const K={shop:"madplan:kurv",steps:"madplan:trin",plan:"madplan:uge",hist:"madplan:historik",md:"madplan:retter",form:"madplan:form",
   insp:"madplan:inspiration",dirty:"madplan:inspiration-ugemt",token:"madplan:github",run:"madplan:opdatering",settings:"madplan:indstillinger"};
-const prefs=()=>({...Engine.PREFS,...store.get(K.settings,{})});
+// Antal personer er 3, medmindre der er valgt et andet gyldigt tal
+const prefs=()=>{
+  const p={...Engine.PREFS,...store.get(K.settings,{})};
+  if(!Number.isInteger(p.persons)||p.persons<1||p.persons>12)p.persons=Engine.PREFS.persons;
+  return p;
+};
 const WF="inspiration.yml";
 let insp={sites:[],log:[]};
 const SHORT=["Man","Tir","Ons","Tor","Fre"];
