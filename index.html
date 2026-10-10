@@ -76,6 +76,14 @@
     padding:14px;border-radius:11px;margin-top:10px;cursor:pointer}
   .go:disabled{opacity:.5;cursor:default}
   .sync a{color:inherit;font-weight:650}
+  .ppl{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);
+    border-radius:13px;padding:8px 8px 8px 15px;margin:0 0 14px}
+  .ppl>span{font-size:16px;font-weight:650}
+  .stepper{display:flex;align-items:center;gap:4px}
+  .stepper button{appearance:none;width:44px;height:44px;border:1.5px solid var(--line);background:var(--page);color:var(--ink);
+    font:inherit;font-size:24px;line-height:1;border-radius:10px;cursor:pointer}
+  .stepper button:disabled{opacity:.35;cursor:default}
+  .stepper b{min-width:38px;text-align:center;font-size:21px;font-weight:720;font-variant-numeric:tabular-nums}
   .rules{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:4px 0 0}
 
   /* Inspiration */
@@ -172,6 +180,10 @@
   </div>
 
   <section class="pane" id="p-plan" role="tabpanel" aria-labelledby="m-plan">
+    <div class="ppl">
+      <span>Antal personer</span>
+      <div class="stepper"><button id="p-minus" aria-label="Færre personer">−</button><b id="p-n" aria-live="polite">3</b><button id="p-plus" aria-label="Flere personer">+</button></div>
+    </div>
     <div id="week"></div>
     <div id="warn"></div>
     <details class="new" id="new">
@@ -185,14 +197,11 @@
         <p class="locks-h">Ønsker til bestemte dage</p>
         <div id="f-locks"></div>
         <button class="go" id="f-go">Lav planen</button>
-        <p class="rules" id="rules"></p>
       </div>
     </details>
     <details class="new" id="set">
       <summary>Indstillinger</summary>
       <div class="form">
-        <label class="fld"><span>Hvor mange spiser med?</span><input id="s-persons" type="number" min="1" max="12" inputmode="numeric">
-          <small>Mængderne i opskrifter og indkøbsliste regnes om. Portionerne er store - til folk der spiser godt.</small></label>
         <label class="chk"><input id="s-chicken" type="checkbox"> Kylling tre dage om ugen</label>
         <label class="chk"><input id="s-pork" type="checkbox"> Ingen svinekød</label>
         <label class="chk"><input id="s-beef" type="checkbox"> Ingen oksekød</label>
@@ -297,7 +306,8 @@ async function boot(){
 
 function buildSettings(){
   const p=prefs();
-  $("s-persons").value=p.persons;
+  $("p-n").textContent=p.persons;
+  $("p-minus").disabled=p.persons<=1;$("p-plus").disabled=p.persons>=12;
   $("s-chicken").checked=p.chicken3;
   $("s-pork").checked=p.noPork;
   $("s-beef").checked=p.noBeef;
@@ -306,21 +316,19 @@ function buildSettings(){
 }
 
 function saveSettings(){
-  const n=Math.min(12,Math.max(1,parseInt($("s-persons").value)||3));
-  store.set(K.settings,{persons:n,chicken3:$("s-chicken").checked,noPork:$("s-pork").checked,
+  store.set(K.settings,{...prefs(),chicken3:$("s-chicken").checked,noPork:$("s-pork").checked,
     noBeef:$("s-beef").checked,noSpicy:$("s-spicy").checked,avoid:$("s-avoid").value.trim()});
-  $("s-saved").textContent="Gemt. Antal personer slår igennem med det samme - resten gælder fra næste plan, eller når du bytter en ret.";
+  $("s-saved").textContent="Gemt. Gælder fra næste plan, eller når du bytter en ret.";
   renderAll();
 }
 
-function rulesText(){
-  const p=prefs(),out=[];
-  out.push(p.chicken3?"Kylling mandag, onsdag og fredag i tre forskellige køkkener og teknikker.":"Kylling aldrig to dage i træk.");
-  const no=[p.noPork&&"svinekød",p.noBeef&&"oksekød",p.noSpicy&&"stærke retter"].filter(Boolean);
-  if(p.avoid)no.push(p.avoid);
-  if(no.length)out.push("Uden "+no.join(", ")+".");
-  out.push("Mindst tre retter under 25 minutter, ingen fisk medmindre du beder om det, ikke to gryderetter i træk, ikke ris hver dag, og ingen gentagelser fra sidste plan.");
-  return out.join(" ");
+// Antal personer slår igennem med det samme i opskrifter og indkøbsliste
+function setPersons(d){
+  const n=Math.min(12,Math.max(1,prefs().persons+d));
+  store.set(K.settings,{...prefs(),persons:n});
+  $("p-n").textContent=n;
+  $("p-minus").disabled=n<=1;$("p-plus").disabled=n>=12;
+  renderAll();
 }
 
 // Inspiration-fanen vises kun for ejeren, dvs. når der ligger en GitHub-nøgle på telefonen
@@ -515,7 +523,6 @@ async function copyInsp(){
 function sub(){
   const n=prefs().persons;
   $("sub").textContent=plan?`Uge ${plan.week} · mandag til fredag · ${n} ${n===1?"person":"personer"}`:`${R.length} retter i opskriftsbanken`;
-  $("rules").textContent=rulesText();
 }
 
 function buildForm(){
@@ -575,7 +582,7 @@ function save(){store.set(K.plan,plan);store.set(K.steps,state.steps);}
 const TECH={gryde:"gryde",wok:"wok",ovn:"ovn",suppe:"suppe",salat:"salat",pande:"pande"};
 function renderPlan(){
   sub();
-  if(!plan){$("week").innerHTML='<p class="empty">Ingen plan endnu. Tjek først Indstillinger nederst - hvor mange I er, og hvad I ikke spiser. Lav så en plan herunder.</p>';$("warn").innerHTML="";return;}
+  if(!plan){$("week").innerHTML='<p class="empty">Ingen plan endnu. Lav en herunder.</p>';$("warn").innerHTML="";return;}
   $("week").innerHTML='<ul class="week">'+plan.ids.map((id,i)=>{
     const r=BY[id];
     const prot=r.low?`${r.protShown} g m. tilbehør`:`${r.protShown} g`;
@@ -643,7 +650,9 @@ $("i-savetok").onclick=()=>{
   if(store.get(K.dirty,false))pushInsp();
 };
 $("i-deltok").onclick=()=>{store.set(K.token,"");renderInsp();ownerUI();};
-["s-persons","s-chicken","s-pork","s-beef","s-spicy","s-avoid"].forEach(id=>$(id).onchange=saveSettings);
+$("p-minus").onclick=()=>setPersons(-1);
+$("p-plus").onclick=()=>setPersons(1);
+["s-chicken","s-pork","s-beef","s-spicy","s-avoid"].forEach(id=>$(id).onchange=saveSettings);
 $("f-go").onclick=makePlan;
 $("reset").onclick=()=>{state.shop={};store.set(K.shop,{});renderShop();};
 $("resetsteps").onclick=()=>{

@@ -11,7 +11,8 @@ En lille offline-app, der laver ugens madplan direkte på telefonen. Tre faner:
 
 Send bare adressen. Andre installerer den fra Chrome eller Safari ("Installer app" / "Føj til hjemmeskærm") og skal ikke bruge GitHub.
 
-- Under **Plan -> Indstillinger** vælger de antal personer (mængderne i opskrifter og indkøbsliste regnes om), om der skal være kylling tre dage, og hvad de ikke spiser (svin, okse, stærkt, eller egne ord som "svampe").
+- Øverst under **Plan** vælger de antal personer med − og +. Mængderne i opskrifter og indkøbsliste regnes om med det samme.
+- Under **Plan -> Indstillinger** vælger de, om der skal være kylling tre dage, og hvad de ikke spiser (svin, okse, stærkt, eller egne ord som "svampe").
 - Plan, indkøbsliste og indstillinger gemmes på deres egen telefon.
 - De får automatisk de nye retter, du henter via Inspiration.
 - Fanen **Inspiration** vises kun på telefoner med en GitHub-nøgle (Indstillinger -> For ejeren af appen). Del aldrig nøglen.
