@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Madplan</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#F2F1EC">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Madplan">
+<style>
+  :root{
+    --ink:#15181C;--ink-soft:#5B6169;--line:#DBD9D2;--page:#F2F1EC;--card:#FFFFFF;
+    --shop:#1F4C66;--shop-tint:#E8EFF3;--cook:#8A2F16;--cook-tint:#F6E9E3;
+    --accent:var(--shop);--accent-tint:var(--shop-tint);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--page)}
+  #mp{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);background:var(--page);max-width:640px;margin:0 auto;
+    padding:env(safe-area-inset-top) 0 calc(56px + env(safe-area-inset-bottom));
+    font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  }
+  #mp[data-mode="cook"]{--accent:var(--cook);--accent-tint:var(--cook-tint)}
+  .top{padding:22px 18px 0}
+  .wk{font-size:13px;color:var(--ink-soft);margin:0 0 2px}
+  .ttl{font-size:30px;font-weight:760;letter-spacing:-.025em;line-height:1.05;margin:0}
+  .modes{display:flex;gap:8px;padding:18px 18px 14px;position:sticky;top:0;z-index:20;background:var(--page)}
+  .modes::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+  .mode{flex:1;appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);
+    font:inherit;font-weight:640;font-size:16px;padding:13px 8px;border-radius:11px;cursor:pointer;
+    transition:background .12s,color .12s,border-color .12s}
+  .mode[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mode:focus-visible,.day:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+  .pane{padding:16px 18px 0}
+  .pane[hidden]{display:none}
+  .meter{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:2px 0 18px}
+  .meter b{font-size:21px;font-weight:720;font-variant-numeric:tabular-nums}
+  .meter span{font-size:14px;color:var(--ink-soft)}
+  .reset{appearance:none;border:1.5px solid var(--line);background:transparent;color:var(--ink-soft);
+    font:inherit;font-size:14px;padding:8px 13px;border-radius:9px;cursor:pointer}
+  .grp{margin:0 0 22px}
+  .grp h2{font-size:14px;font-weight:700;color:var(--accent);margin:0 0 8px}
+  .grp ul{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .grp li+li{border-top:1px solid var(--line)}
+  .row{display:flex;align-items:center;gap:14px;width:100%;padding:15px;cursor:pointer;user-select:none}
+  .box{flex:0 0 25px;height:25px;border:2px solid var(--ink-soft);border-radius:7px;position:relative;
+    transition:background .12s,border-color .12s}
+  .box::after{content:"";position:absolute;left:8px;top:3px;width:6px;height:12px;border:solid #fff;
+    border-width:0 2.5px 2.5px 0;transform:rotate(42deg) scale(0);transition:transform .12s}
+  .row.on .box{background:var(--accent);border-color:var(--accent)}
+  .row.on .box::after{transform:rotate(42deg) scale(1)}
+  .nm{flex:1;font-size:17px}
+  .qt{font-size:15px;color:var(--ink-soft);font-variant-numeric:tabular-nums;text-align:right}
+  .row.on .nm,.row.on .qt{color:#A7A9A4;text-decoration:line-through}
+  .tag{display:inline-block;font-size:12px;font-weight:650;color:var(--ink-soft);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;margin-left:7px;vertical-align:1px;text-decoration:none!important}
+  .days{display:flex;gap:7px;margin:0 0 18px;flex-wrap:wrap}
+  .day{flex:1 1 0;min-width:82px;appearance:none;border:1.5px solid var(--line);background:var(--card);
+    color:var(--ink-soft);font:inherit;font-weight:640;font-size:15px;padding:11px 4px;border-radius:10px;cursor:pointer}
+  .day[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .dish{font-size:27px;font-weight:750;letter-spacing:-.02em;line-height:1.12;margin:0 0 12px}
+  .stats{display:flex;gap:10px;margin:0 0 20px}
+  .stat{flex:1;background:var(--accent-tint);border-radius:11px;padding:11px 13px}
+  .stat b{display:block;font-size:20px;font-weight:730;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat span{font-size:13px;color:var(--ink-soft)}
+  .ing{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px 17px;margin:0 0 24px}
+  .ing h3{font-size:14px;font-weight:700;color:var(--accent);margin:0 0 9px}
+  .ing p{margin:0;font-size:16.5px;line-height:1.65}
+  .ing i{font-style:normal;color:var(--line);padding:0 3px}
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0}
+  ol.steps li{counter-increment:s;margin:0 0 10px}
+  .step{display:flex;gap:14px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+    border-radius:13px;padding:16px;cursor:pointer;font:inherit;color:var(--ink)}
+  .step::before{content:counter(s);flex:0 0 30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+    font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .step p{margin:0;font-size:20px;line-height:1.4}
+  .step.on{background:transparent;border-style:dashed}
+  .step.on::before{background:var(--line);color:var(--ink-soft)}
+  .step.on p{color:#A7A9A4}
+  .foot{margin:22px 0 0;font-size:13.5px;color:var(--ink-soft);display:flex;justify-content:space-between;
+    gap:12px;align-items:center}
+  .note{padding:0;margin:26px 0 0;font-size:14px;color:var(--ink-soft);line-height:1.55}
+  .empty{padding:40px 18px;color:var(--ink-soft);font-size:16px;line-height:1.6}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="mp" data-mode="shop">
+  <div class="top">
+    <p class="wk" id="sub">Henter planen</p>
+    <h1 class="ttl">Madplan</h1>
+  </div>
+  <div class="modes" role="tablist">
+    <button class="mode" role="tab" id="m-shop" aria-selected="true" aria-controls="p-shop">Indkøb</button>
+    <button class="mode" role="tab" id="m-cook" aria-selected="false" aria-controls="p-cook">Madlavning</button>
+  </div>
+  <section class="pane" id="p-shop" role="tabpanel" aria-labelledby="m-shop">
+    <div class="meter">
+      <div><b id="count">0 af 0</b> <span>i kurven</span></div>
+      <button class="reset" id="reset">Ryd afkrydsning</button>
+    </div>
+    <div id="list"></div>
+    <p class="note" id="tip"></p>
+  </section>
+  <section class="pane" id="p-cook" role="tabpanel" aria-labelledby="m-cook" hidden>
+    <div class="days" role="tablist" id="days"></div>
+    <div id="recipe"></div>
+    <div class="foot"><span id="wake">Skærmen slukker som normalt</span><button class="reset" id="resetsteps">Ryd trin</button></div>
+  </section>
+</div>
+
+<script>
+const K={shop:"madplan:kurv",steps:"madplan:trin",plan:"madplan:plan",data:"madplan:data"};
+let DATA=null,state={shop:{},steps:{}},day=0,lock=null;
+
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+
+function sig(d){return d.days.map(x=>x.dish).join("|")+"::"+d.shop.map(g=>g.items.length).join(",")}
+
+async function boot(){
+  try{
+    const r=await fetch("./plan.json",{cache:"no-store"});
+    if(!r.ok) throw 0;
+    DATA=await r.json();
+    store.set(K.data,JSON.stringify(DATA));
+  }catch(e){
+    const c=store.get(K.data);
+    if(c) DATA=JSON.parse(c);
+  }
+  if(!DATA){
+    document.getElementById("mp").innerHTML='<p class="empty">Planen kunne ikke hentes, og der ligger ingen gemt udgave i telefonen. Åbn appen én gang med netforbindelse.</p>';
+    return;
+  }
+  const s=sig(DATA);
+  if(store.get(K.plan)!==s){
+    state={shop:{},steps:{}};
+    store.set(K.plan,s);store.set(K.shop,"{}");store.set(K.steps,"{}");
+  }else{
+    try{state.shop=JSON.parse(store.get(K.shop)||"{}");state.steps=JSON.parse(store.get(K.steps)||"{}")}catch(e){}
+  }
+  document.getElementById("sub").textContent=DATA.sub||"";
+  document.getElementById("tip").textContent=DATA.tip||"";
+  renderShop();renderCook();
+}
+
+function renderShop(){
+  document.getElementById("list").innerHTML=DATA.shop.map((g,gi)=>
+    `<div class="grp"><h2>${g.g}</h2><ul>`+g.items.map((it,ii)=>{
+      const id=gi+"-"+ii,on=state.shop[id]?" on":"";
+      const tags=(it[2]||[]).map(t=>`<span class="tag">${t}</span>`).join("");
+      return `<li><div class="row${on}" data-id="${id}" role="checkbox" tabindex="0" aria-checked="${!!state.shop[id]}"><span class="box"></span><span class="nm">${it[0]}${tags}</span><span class="qt">${it[1]}</span></div></li>`;
+    }).join("")+`</ul></div>`).join("");
+  const tot=DATA.shop.reduce((a,g)=>a+g.items.length,0);
+  document.getElementById("count").textContent=Object.values(state.shop).filter(Boolean).length+" af "+tot;
+}
+
+function renderCook(){
+  document.getElementById("days").innerHTML=DATA.days.map((d,i)=>
+    `<button class="day" role="tab" data-day="${i}" aria-selected="${i===day}">${d.d}</button>`).join("");
+  const d=DATA.days[day];
+  document.getElementById("recipe").innerHTML=
+    `<h2 class="dish">${d.dish}</h2>
+     <div class="stats"><div class="stat"><b>${d.time}</b><span>aktiv tid</span></div><div class="stat"><b>${d.prot}</b><span>protein pr. person</span></div></div>
+     <div class="ing"><h3>Ingredienser til ${DATA.pers||3}</h3><p>${d.ing.split("|").join('<i>/</i>')}</p></div>
+     <ol class="steps">`+d.steps.map((s,i)=>{
+       const id=day+"-"+i,on=state.steps[id]?" on":"";
+       return `<li><button class="step${on}" data-step="${id}"><p>${s}</p></button></li>`;
+     }).join("")+`</ol>`;
+}
+
+async function wake(on){
+  const el=document.getElementById("wake");
+  try{
+    if(on&&"wakeLock"in navigator){lock=await navigator.wakeLock.request("screen");el.textContent="Skærmen holdes tændt";}
+    else if(lock){await lock.release();lock=null;el.textContent="Skærmen slukker som normalt";}
+  }catch(e){el.textContent="Skærmen slukker som normalt";}
+}
+
+function mode(m){
+  document.getElementById("mp").dataset.mode=m;
+  document.getElementById("m-shop").setAttribute("aria-selected",m==="shop");
+  document.getElementById("m-cook").setAttribute("aria-selected",m==="cook");
+  document.getElementById("p-shop").hidden=m!=="shop";
+  document.getElementById("p-cook").hidden=m!=="cook";
+  wake(m==="cook");window.scrollTo(0,0);
+}
+
+document.getElementById("m-shop").onclick=()=>mode("shop");
+document.getElementById("m-cook").onclick=()=>mode("cook");
+document.getElementById("reset").onclick=()=>{state.shop={};store.set(K.shop,"{}");renderShop();};
+document.getElementById("resetsteps").onclick=()=>{
+  Object.keys(state.steps).forEach(k=>{if(k.startsWith(day+"-"))delete state.steps[k];});
+  store.set(K.steps,JSON.stringify(state.steps));renderCook();};
+
+document.addEventListener("click",e=>{
+  const r=e.target.closest(".row");
+  if(r){const id=r.dataset.id;state.shop[id]=!state.shop[id];store.set(K.shop,JSON.stringify(state.shop));renderShop();return;}
+  const s=e.target.closest(".step");
+  if(s){const id=s.dataset.step;state.steps[id]=!state.steps[id];store.set(K.steps,JSON.stringify(state.steps));renderCook();return;}
+  const d=e.target.closest(".day");
+  if(d){day=+d.dataset.day;renderCook();window.scrollTo(0,0);}
+});
+document.addEventListener("keydown",e=>{
+  if((e.key===" "||e.key==="Enter")&&e.target.classList&&e.target.classList.contains("row")){e.preventDefault();e.target.click();}
+});
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&document.getElementById("mp").dataset.mode==="cook")wake(true);
+});
+
+if("serviceWorker"in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+boot();
+</script>
+</body>
+</html>
